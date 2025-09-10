@@ -1,0 +1,469 @@
+/* Mobile-first responsive design */
+
+/* Base mobile styles */
+@media (max-width: 640px) {
+  /* Layout adjustments */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Typography */
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  
+  h3 {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Spacing */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Cards */
+  .card {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0.5rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card-header {
+    padding: 1rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-error,
+  .btn-warning {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Forms */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Stats cards */
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  /* Transaction items */
+  .transaction-item {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .transaction-details {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .transaction-amount {
+    font-size: 1rem;
+  }
+  
+  /* Modal adjustments */
+  .modal-content {
+    padding: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    max-width: 24rem;
+  }
+  
+  .modal-header {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Voice assistant */
+  .voice-assistant {
+    bottom: 1rem;
+    right: 1rem;
+  }
+  
+  .voice-assistant button {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .voice-assistant .voice-commands {
+    max-width: 20rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Navigation */
+  .sidebar {
+    width: 100%;
+  }
+  
+  /* Dashboard grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  
+  /* Chart containers */
+  .chart-container {
+    height: 12rem;
+  }
+  
+  /* Table responsive */
+  .table-container {
+    overflow-x: auto;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .table-container table {
+    font-size: 0.75rem;
+  }
+  
+  .table-container th,
+  .table-container td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  
+  /* Filter controls */
+  .filter-controls {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.75rem;
+    column-gap: 0;
+  }
+  
+  .filter-controls > * {
+    width: 100%;
+  }
+  
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    column-gap: 0;
+  }
+  
+  .action-buttons > * {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Layout */
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  /* Grid adjustments */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+  
+  /* Cards */
+  .card-body {
+    padding: 1.25rem;
+  }
+  
+  .card-header {
+    padding: 1.25rem;
+    padding-bottom: 1rem;
+  }
+  
+  /* Stats */
+  .stat-card {
+    padding: 1.25rem;
+  }
+  
+  /* Charts */
+  .chart-container {
+    height: 16rem;
+  }
+  
+  /* Modal */
+  .modal-content {
+    max-width: 28rem;
+  }
+  
+  /* Voice assistant */
+  .voice-assistant {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+  
+  .voice-assistant button {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  /* Layout */
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  
+  /* Grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  
+  /* Charts */
+  .chart-container {
+    height: 20rem;
+  }
+  
+  /* Voice assistant */
+  .voice-assistant {
+    bottom: 2rem;
+    right: 2rem;
+  }
+  
+  .voice-assistant button {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-error,
+  .btn-warning {
+    min-height: 3rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  /* Form inputs */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    min-height: 3rem;
+  }
+  
+  /* Navigation items */
+  .nav-item {
+    min-height: 3rem;
+  }
+  
+  /* Action buttons in lists */
+  .action-button {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .card-hover:hover {
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  
+  button:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+    border-style: solid;
+    border-color: #9ca3af; /* gray-400 */
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border-width: 2px;
+    border-style: solid;
+    border-color: #9ca3af;
+  }
+  
+  button {
+    border-width: 2px;
+    border-style: solid;
+    border-color: currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+  
+  .loading-spinner {
+    animation: none !important;
+  }
+  
+  .voice-pulse,
+  .voice-listening {
+    animation: none !important;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  /* This can be expanded later for dark mode support */
+  .card {
+    background-color: #111827; /* gray-800 */
+    border-color: #374151; /* gray-700 */
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    background-color: #111827;
+    border-color: #374151;
+    color: #ffffff;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar,
+  .voice-assistant,
+  button:not(.print-button) {
+    display: none;
+  }
+  
+  .card {
+    box-shadow: none;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d1d5db; /* gray-300 */
+  }
+  
+  .chart-container {
+    height: 16rem;
+  }
+  
+  * {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 640px) and (orientation: landscape) {
+  .chart-container {
+    height: 10rem;
+  }
+  
+  .modal-content {
+    max-height: 20rem;
+    overflow-y: auto;
+  }
+  
+  .voice-assistant {
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+  
+  .voice-assistant button {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .card-body,
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+  }
+  
+  .stat-value {
+    font-size: 1.125rem;
+  }
+  
+  .modal-content {
+    padding: 0.75rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-error,
+  .btn-warning {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.75rem;
+  }
+  }
