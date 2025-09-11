@@ -377,27 +377,22 @@ const Reports: React.FC = () => {
     ],
   };
 
-  const monthlyChartData = {
+const monthlyChartData = {
     labels: reportData?.monthlyData?.map((m: any) => m.month) || [],
     datasets: [
       {
         label: 'Income',
         data: reportData?.monthlyData?.map((m: any) => m.income) || [],
-        backgroundColor: 'rgba(16, 185, 129, 0.8)',
-        borderColor: '#10b981',
-        borderWidth: 2,
-        borderRadius: 8,
+        backgroundColor: '#10b981',
       },
       {
         label: 'Expenses',
         data: reportData?.monthlyData?.map((m: any) => m.expenses) || [],
-        backgroundColor: 'rgba(239, 68, 68, 0.8)',
-        borderColor: '#ef4444',
-        borderWidth: 2,
-        borderRadius: 8,
+        backgroundColor: '#ef4444',
       },
     ],
   };
+
 
   const trendChartData = {
     labels: getDailyTotals().map(day => format(parseISO(day.date), 'MMM dd')),
@@ -433,18 +428,32 @@ const Reports: React.FC = () => {
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
-        borderColor: '#3b82f6',
-        borderWidth: 1,
-        cornerRadius: 8,
-        callbacks: {
-          label: function(context: any) {
-            return `₹${context.parsed.toLocaleString()}`;
-          },
-        },
-      },
+  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  titleColor: '#ffffff',
+  bodyColor: '#ffffff',
+  borderColor: '#3b82f6',
+  borderWidth: 1,
+  cornerRadius: 8,
+  callbacks: {
+    title: function (context: any) {
+      // Use the x-axis label (e.g., "Jan 10")
+      return context[0].label;
+    },
+    label: function (context: any) {
+      let value;
+
+      // For bar/line charts → parsed is {x, y}
+      if (typeof context.parsed === 'object' && context.parsed !== null) {
+        value = context.parsed.y;
+      } else {
+        value = context.parsed;
+      }
+
+      return `${context.dataset.label}: ₹${Number(value).toLocaleString()}`;
+    },
+  },
+},
+
     },
     scales: chartView !== 'category' ? {
       y: {
