@@ -665,7 +665,7 @@ const Dashboard: React.FC = () => {
             <p className="text-sm text-gray-600 mt-1">Key metrics for the selected period</p>
           </div>
           
-          <div className="p-6">
+            <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl border border-blue-200">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">

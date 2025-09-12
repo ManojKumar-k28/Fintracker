@@ -254,16 +254,16 @@ const Income: React.FC = () => {
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: '#10b981',
+        borderColor: '#3b82f6',
         borderWidth: 1,
-        cornerRadius: 8,
-        displayColors: false,
+        cornerRadius: 12,
+        displayColors: true,
         callbacks: {
-          label: function (context: any) {
-            return `₹${context.parsed.toLocaleString()}`;
+          label: function(context: any) {
+            return `${context.dataset.label}: ₹${context.parsed.y.toLocaleString()}`;
           },
         },
       },
