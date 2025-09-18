@@ -3,7 +3,10 @@ import { Mic, MicOff, Volume2, Minimize2, MessageCircle, HelpCircle, ChevronDown
 import { useVoice } from '../contexts/VoiceContext';
 
 const VoiceAssistant: React.FC = () => {
-  const { isListening, startListening, stopListening, transcript, status } = useVoice();
+  const voice = useVoice();
+  const { isListening, startListening, stopListening, transcript } = voice;
+  // 'status' may not exist on the VoiceContextType; read it dynamically and fall back to a sensible default
+  const status: 'listening' | 'processing' | 'responding' | 'idle' = (voice as any).status ?? (isListening ? 'listening' : 'idle');
   const [isMinimized, setIsMinimized] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -173,9 +176,9 @@ const VoiceAssistant: React.FC = () => {
               )}
               <div className="relative z-10">
                 {isListening ? (
-                  <MicOff className="w-4 h-4 text-white" />
+                  <MicOff className="w-6 h-6 text-white" />
                 ) : (
-                  <Mic className="w-4 h-4 text-white" />
+                  <Mic className="w-6 h-6 text-white" />
                 )}
               </div>
             </button>
