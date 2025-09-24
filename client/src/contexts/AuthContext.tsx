@@ -46,17 +46,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    try {
-      const response = await axios.post('/api/auth/login', { username, password });
-      setUser(response.data.user);
-      toast.success('Login successful!');
-      return true;
-    } catch (error: any) {
+const login = async (identifier: string, password: string): Promise<boolean> => {
+  try {
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+    const payload = isEmail
+      ? { email: identifier, password }
+      : { username: identifier, password };
+
+    const response = await axios.post('/api/auth/login', payload, { withCredentials: true });
+
+    setUser(response.data.user);
+    toast.success('Login successful!');
+    return true;
+  } catch (error: any) {
+    console.error('Login error:', error.response?.data);
+
+    if (error.response?.data?.errors) {
+      // express-validator array
+      const firstError = error.response.data.errors[0]?.msg;
+      toast.error(firstError || 'Validation failed');
+    } else {
       toast.error(error.response?.data?.message || 'Login failed');
-      return false;
     }
-  };
+    return false;
+  }
+};
 
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {

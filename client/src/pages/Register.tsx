@@ -14,42 +14,64 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { user, register } = useAuth();
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Validation rules
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
-    // Username validation
+    // Username
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.length < 5) {
+      newErrors.username = 'Username must be at least 5 characters';
     } else if (formData.username.length > 30) {
       newErrors.username = 'Username must be less than 30 characters';
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
       newErrors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
-    // Email validation
+    // Email
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+    // Password
+// Password validation
+if (!formData.password) {
+  newErrors.password = 'Password is required';
+} else {
+  const passwordErrors: string[] = [];
 
-    // Confirm password validation
+  if (formData.password.length < 8) {
+    passwordErrors.push('at least 8 characters');
+  }
+  if (!/[A-Z]/.test(formData.password)) {
+    passwordErrors.push('an uppercase letter');
+  }
+  if (!/[a-z]/.test(formData.password)) {
+    passwordErrors.push('a lowercase letter');
+  }
+  if (!/[0-9]/.test(formData.password)) {
+    passwordErrors.push('a number');
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+    passwordErrors.push('a special character');
+  }
+
+  if (passwordErrors.length > 0) {
+    newErrors.password = `Password must contain ${passwordErrors.join(', ')}`;
+  }
+}
+
+    // Confirm Password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
@@ -63,31 +85,23 @@ const Register: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-
-    // Clear confirm password error if passwords now match
-    if (name === 'password' && formData.confirmPassword && value === formData.confirmPassword) {
-      setErrors(prev => ({ ...prev, confirmPassword: '' }));
-    }
-    if (name === 'confirmPassword' && formData.password && value === formData.password) {
-      setErrors(prev => ({ ...prev, confirmPassword: '' }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast.error('Please fix the validation errors');
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const success = await register(formData.username, formData.email, formData.password);
       if (!success) {
@@ -112,6 +126,7 @@ const Register: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username */}
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username *
@@ -128,11 +143,10 @@ const Register: React.FC = () => {
               placeholder="Choose a username"
               required
             />
-            {errors.username && (
-              <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-            )}
+            {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
           </div>
 
+          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email *
@@ -149,11 +163,10 @@ const Register: React.FC = () => {
               placeholder="Enter your email"
               required
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
+          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password *
@@ -174,16 +187,15 @@ const Register: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-500 transition-colors duration-200 p-1 rounded-md hover:bg-primary-50"
+                className="absolute right-3 top-1/4 text-gray-400 hover:text-primary-500 transition-colors duration-200 p-1 rounded-md hover:bg-primary-50"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password *
@@ -204,7 +216,7 @@ const Register: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-500 transition-colors duration-200 p-1 rounded-md hover:bg-primary-50"
+                className="absolute right-3 top-1/4  text-gray-400 hover:text-primary-500 transition-colors duration-200 p-1 rounded-md hover:bg-primary-50"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -214,6 +226,7 @@ const Register: React.FC = () => {
             )}
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -233,7 +246,7 @@ const Register: React.FC = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-500 hover:text-primary-600 font-medium transition-colors">
+            <Link to="/login" className="text-primary-500 hover:text-primary-600 font-medium">
               Sign in
             </Link>
           </p>

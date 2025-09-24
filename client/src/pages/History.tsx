@@ -61,8 +61,8 @@ const History: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get('/api/categories');
-      const categoryNames = response.data.map((cat: any) => cat.name);
-      setCategories([...new Set(categoryNames)]);
+      const categoryNames: string[] = (response.data as any[]).map((cat: any) => String(cat.name));
+      setCategories(Array.from(new Set(categoryNames)));
     } catch (error) {
       console.error('Error fetching categories:', error);
     }

@@ -6,54 +6,72 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState(''); // username OR email
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+
   const { user, login } = useAuth();
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // === Validation + Login ===
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    const success = await login(username, password);
+
+    if (!identifier.trim()) {
+      toast.error('Username or email is required');
+      setLoading(false);
+      return;
+    }
+
+    if (identifier.includes('@gamil.com') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+      toast.error('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    const success = await login(identifier, password);
     if (!success) {
       setLoading(false);
     }
   };
 
+  // === Forgot Password Flow ===
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!forgotEmail.trim()) {
       toast.error('Please enter your email address');
       return;
     }
-    
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotEmail)) {
       toast.error('Please enter a valid email address');
       return;
     }
-    
+
     setForgotLoading(true);
-    
     try {
-      const response = await axios.post('/api/auth/forgot-password', { 
-        email: forgotEmail 
-      });
-      
+      const response = await axios.post('/api/auth/forgot-password', { email: forgotEmail });
       toast.success('Password reset link sent to your email!');
       setShowForgotPassword(false);
       setForgotEmail('');
-      
-      // For development - show the reset token
+
+      // DEV only: show token in console
       if (response.data.resetToken) {
         console.log('Reset token:', response.data.resetToken);
         toast.success(`Reset token: ${response.data.resetToken}`, { duration: 10000 });
@@ -64,9 +82,11 @@ const Login: React.FC = () => {
       setForgotLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Wallet className="w-8 h-8 text-white" />
@@ -75,22 +95,25 @@ const Login: React.FC = () => {
           <p className="text-gray-600 mt-2">Sign in to your FinTracker account</p>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username or Email */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-2">
+              Username or Email
             </label>
             <input
               type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="identifier"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              placeholder="Enter your username"
+              placeholder="Enter your username or email"
               required
             />
           </div>
 
+          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -108,7 +131,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-500 transition-all duration-200 p-1 rounded-md hover:bg-primary-50"
+                className="absolute right-3 top-1/4  text-gray-400 hover:text-primary-500  p-1  "
               >
                 {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
               </button>
@@ -124,6 +147,7 @@ const Login: React.FC = () => {
           </button>
         </form>
 
+        {/* Forgot password */}
         <div className="mt-6 text-center">
           <button
             onClick={() => setShowForgotPassword(true)}
@@ -132,6 +156,8 @@ const Login: React.FC = () => {
             Forgot your password?
           </button>
         </div>
+
+        {/* Register link */}
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Don't have an account?{' '}

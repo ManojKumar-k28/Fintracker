@@ -607,7 +607,7 @@ const Income: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-lg hover:from-success-600 hover:to-success-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-md"
+                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-success-500 to-success-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium"
                 >
                   {editingItem ? 'Update' : 'Add'} Income
                 </button>

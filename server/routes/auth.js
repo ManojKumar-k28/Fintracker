@@ -50,12 +50,18 @@ router.post('/register', validateRegistration, handleValidationErrors, async (re
 });
 
 // Login
+// Login
 router.post('/login', validateLogin, handleValidationErrors, async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ username });
+    // Check fields
+    if (!username && !email) {
+      return res.status(400).json({ message: 'Username or email is required' });
+    }
+
+    // Find user by username OR email
+    const user = await User.findOne(username ? { username } : { email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }

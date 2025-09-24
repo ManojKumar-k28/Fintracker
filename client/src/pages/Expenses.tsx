@@ -611,7 +611,7 @@ const Expenses: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-error-500 to-error-600 text-white rounded-lg hover:from-error-600 hover:to-error-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-md"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-error-500 to-error-600 text-white rounded-lg  hover:to-error-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-md"
                 >
                   {editingItem ? 'Update' : 'Add'} Expense
                 </button>
