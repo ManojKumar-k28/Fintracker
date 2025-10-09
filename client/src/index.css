@@ -1,0 +1,333 @@
+/*
+  The following Tailwind directives require processing by Tailwind's PostCSS plugin.
+  Make sure your build tool (like PostCSS, Vite, or Webpack) is configured to use Tailwind.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import custom styles */
+@import './styles/components.css';
+@import './styles/mobile.css';
+
+/* Custom scrollbar styles */
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transitions for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Voice assistant animation */
+@keyframes pulse-voice {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.voice-active {
+  animation: pulse-voice 2s infinite;
+}
+
+/* Enhanced voice assistant animations */
+@keyframes voice-listening {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.voice-listening {
+  animation: voice-listening 1.5s infinite;
+}
+
+/* Chart responsive styles */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-container {
+    height: 200px;
+  }
+}
+
+/* Custom focus styles */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover effects */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Card hover effects */
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .card-hover:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Loading animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Progress bar animation */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.progress-bar {
+  animation: progressFill 1s ease-out;
+}
+
+/* Loading spinner styles */
+.loading-spinner {
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Improve touch targets */
+  button, .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better spacing for mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Responsive text sizes */
+  h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  h3 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+  
+  /* Better form inputs on mobile */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .chart-container {
+    height: 280px;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1025px) {
+  .chart-container {
+    height: 350px;
+  }
+  
+  /* Enhanced hover effects for desktop */
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper borders and shadows */
+  .card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-contrast: high) {
+  /* Higher contrast for better visibility */
+  .card {
+    border: 2px solid #374151;
+  }
+  
+  input, select, textarea {
+    border: 2px solid #374151;
+  }
+  
+  button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.focus-visible:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Safe area insets for mobile devices with notches */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Error states */
+.error-state {
+  color: #ef4444; /* Tailwind text-error-500 */
+  background-color: #fef2f2; /* Tailwind bg-error-50 */
+  border: 1px solid #fecaca; /* Tailwind border-error-200 */
+  border-radius: 0.5rem; /* Tailwind rounded-lg */
+  padding: 1rem; /* Tailwind p-4 */
+}
+
+/* Success states */
+.success-state {
+  color: #059669; /* Tailwind text-success-500 */
+  background-color: #ecfdf5; /* Tailwind bg-success-50 */
+  border: 1px solid #a7f3d0; /* Tailwind border-success-200 */
+  border-radius: 0.5rem; /* Tailwind rounded-lg */
+  padding: 1rem; /* Tailwind p-4 */
+}
+
+/* Warning states */
+.warning-state {
+  color: #b45309; /* Tailwind text-warning-500 */
+  background-color: #fef3c7; /* Tailwind bg-warning-50 */
+  border: 1px solid #fde68a; /* Tailwind border-warning-200 */
+  border-radius: 0.5rem; /* Tailwind rounded-lg */
+  padding: 1rem; /* Tailwind p-4 */
+}
+
+/* Info states */
+.info-state {
+  color: #2563eb; /* Tailwind text-primary-500 */
+  background-color: #eff6ff; /* Tailwind bg-primary-50 */
+  border: 1px solid #bfdbfe; /* Tailwind border-primary-200 */
+  border-radius: 0.5rem; /* Tailwind rounded-lg */
+  padding: 1rem; /* Tailwind p-4 */
+}
