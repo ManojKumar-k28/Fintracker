@@ -6,9 +6,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import custom styles */
-@import './styles/components.css';
-@import './styles/mobile.css';
+
 
 /* Custom scrollbar styles */
 

@@ -28,10 +28,6 @@ import {
 import axios from 'axios';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths, startOfYear, endOfYear } from 'date-fns';
 import toast from 'react-hot-toast';
-import '../styles/dashboard.css';
- // Import the CSS file
-
-// ... (ChartJS registration and interface definitions remain the same)
 
 ChartJS.register(
   CategoryScale,
@@ -55,9 +51,7 @@ interface DashboardData {
   monthlyData: any[];
 }
 
-
 const Dashboard: React.FC = () => {
-  // ... (All your state, useEffect, and handler logic remains exactly the same)
   const [data, setData] = useState<DashboardData>({
     totalIncome: 0,
     totalExpenses: 0,
@@ -82,7 +76,11 @@ const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching dashboard data for period:', period);
+      
       const response = await axios.get(`/api/dashboard?period=${period}`);
+      console.log('Dashboard data received:', response.data);
+      
       setData(response.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -94,23 +92,33 @@ const Dashboard: React.FC = () => {
 
   const fetchWeeklyData = async () => {
     try {
+      // Get data for the last 8 weeks
       const weeklyAnalysis = [];
       const now = new Date();
+      
       for (let i = 7; i >= 0; i--) {
         const weekStart = startOfWeek(subWeeks(now, i));
         const weekEnd = endOfWeek(subWeeks(now, i));
+        
         const [incomeResponse, expenseResponse] = await Promise.all([
           axios.get('/api/income'),
           axios.get('/api/expenses')
         ]);
-        const weekIncome = incomeResponse.data.filter((item: any) => {
+        
+        const weekIncome = incomeResponse.data
+          .filter((item: any) => {
             const itemDate = new Date(item.date);
             return itemDate >= weekStart && itemDate <= weekEnd;
-          }).reduce((sum: number, item: any) => sum + item.amount, 0);
-        const weekExpenses = expenseResponse.data.filter((item: any) => {
+          })
+          .reduce((sum: number, item: any) => sum + item.amount, 0);
+          
+        const weekExpenses = expenseResponse.data
+          .filter((item: any) => {
             const itemDate = new Date(item.date);
             return itemDate >= weekStart && itemDate <= weekEnd;
-          }).reduce((sum: number, item: any) => sum + item.amount, 0);
+          })
+          .reduce((sum: number, item: any) => sum + item.amount, 0);
+        
         weeklyAnalysis.push({
           week: format(weekStart, 'MMM dd'),
           income: weekIncome,
@@ -118,6 +126,7 @@ const Dashboard: React.FC = () => {
           savings: weekIncome - weekExpenses,
         });
       }
+      
       setWeeklyData(weeklyAnalysis);
     } catch (error) {
       console.error('Error fetching weekly data:', error);
@@ -131,80 +140,90 @@ const Dashboard: React.FC = () => {
     toast.success('Dashboard refreshed');
   };
 
-  const getPeriodLabel = (): string => {
-    if (period === 'week') return 'This Week';
-    if (period === 'year') return 'This Year';
-    return 'This Month';
+  const getPeriodLabel = () => {
+    switch (period) {
+      case 'week': return 'This Week';
+      case 'month': return 'This Month';
+      case 'year': return 'This Year';
+      default: return 'This Month';
+    }
   };
 
-  const getPeriodDateRange = (): string => {
+  const getPeriodDateRange = () => {
     const now = new Date();
-    if (period === 'week') {
-      const start = startOfWeek(now);
-      const end = endOfWeek(now);
-      return `${format(start, 'MMM dd')} - ${format(end, 'MMM dd, yyyy')}`;
+    switch (period) {
+      case 'week':
+        return `${format(startOfWeek(now), 'MMM dd')} - ${format(endOfWeek(now), 'MMM dd, yyyy')}`;
+      case 'month':
+        return `${format(startOfMonth(now), 'MMM dd')} - ${format(endOfMonth(now), 'MMM dd, yyyy')}`;
+      case 'year':
+        return `${format(startOfYear(now), 'MMM dd')} - ${format(endOfYear(now), 'MMM dd, yyyy')}`;
+      default:
+        return format(now, 'MMM yyyy');
     }
-    if (period === 'year') {
-      const start = startOfYear(now);
-      const end = endOfYear(now);
-      return `${format(start, 'MMM dd, yyyy')} - ${format(end, 'MMM dd, yyyy')}`;
-    }
-    // default month
-    const start = startOfMonth(now);
-    const end = endOfMonth(now);
-    return `${format(start, 'MMM dd')} - ${format(end, 'MMM dd, yyyy')}`;
   };
 
+  // Enhanced chart data for weekly analysis
   const weeklyChartData = {
-    labels: weeklyData.map((w: any) => w.week),
+    labels: weeklyData.map(item => item.week),
     datasets: [
       {
         label: 'Income',
-        data: weeklyData.map((w: any) => w.income || 0),
-        backgroundColor: 'rgba(34,197,94,0.8)',
-        borderColor: 'rgba(34,197,94,1)',
+        data: weeklyData.map(item => item.income),
+        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+        borderColor: '#10b981',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
       },
       {
         label: 'Expenses',
-        data: weeklyData.map((w: any) => w.expenses || 0),
-        backgroundColor: 'rgba(244,63,94,0.8)',
-        borderColor: 'rgba(244,63,94,1)',
+        data: weeklyData.map(item => item.expenses),
+        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+        borderColor: '#ef4444',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
 
+  // Enhanced chart data for monthly analysis
   const monthlyChartData = {
-    labels: (data.monthlyData || []).map((m: any) => m.month),
+    labels: data.monthlyData?.map(item => item.month) || [],
     datasets: [
       {
         label: 'Income',
-        data: (data.monthlyData || []).map((m: any) => m.income || 0),
-        backgroundColor: 'rgba(34,197,94,0.8)',
-        borderColor: 'rgba(34,197,94,1)',
+        data: data.monthlyData?.map(item => item.income) || [],
+        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+        borderColor: '#10b981',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
       },
       {
         label: 'Expenses',
-        data: (data.monthlyData || []).map((m: any) => m.expenses || 0),
-        backgroundColor: 'rgba(244,63,94,0.8)',
-        borderColor: 'rgba(244,63,94,1)',
+        data: data.monthlyData?.map(item => item.expenses) || [],
+        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+        borderColor: '#ef4444',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
 
   const doughnutData = {
-    labels: (data.categoryData || []).map((c: any) => c.category || c.label || 'Unknown'),
+    labels: data.categoryData?.map(item => item.name) || [],
     datasets: [
       {
-        data: (data.categoryData || []).map((c: any) => c.amount || 0),
+        data: data.categoryData?.map(item => item.amount) || [],
         backgroundColor: [
-          '#60a5fa',
-          '#34d399',
-          '#f97316',
-          '#f43f5e',
-          '#a78bfa',
-          '#f59e0b',
-          '#06b6d4',
+          '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+          '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+          '#14b8a6', '#f472b6', '#a855f7', '#22c55e', '#fb7185'
         ],
+        borderWidth: 0,
         hoverOffset: 8,
       },
     ],
@@ -216,17 +235,57 @@ const Dashboard: React.FC = () => {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+            weight: 500,
+          },
+        },
       },
-      title: {
-        display: false,
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        cornerRadius: 12,
+        displayColors: true,
+        callbacks: {
+          label: function(context: any) {
+            return `${context.dataset.label}: ₹${context.parsed.y.toLocaleString()}`;
+          },
+        },
       },
     },
     scales: {
-      x: {
-        stacked: false,
-      },
       y: {
         beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+          drawBorder: false,
+        },
+        ticks: {
+          callback: function(value: any) {
+            return '₹' + value.toLocaleString();
+          },
+          font: {
+            size: 11,
+          },
+          color: '#6b7280',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+          color: '#6b7280',
+        },
       },
     },
   };
@@ -237,38 +296,97 @@ const Dashboard: React.FC = () => {
     plugins: {
       legend: {
         position: 'right' as const,
+        labels: {
+          padding: 15,
+          usePointStyle: true,
+          font: {
+            size: 11,
+          },
+          generateLabels: function(chart: any) {
+            const data = chart.data;
+            if (data.labels.length && data.datasets.length) {
+              return data.labels.map((label: string, i: number) => {
+                const value = data.datasets[0].data[i];
+                const total = data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return {
+                  text: `${label} (${percentage}%)`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  strokeStyle: data.datasets[0].backgroundColor[i],
+                  pointStyle: 'circle',
+                };
+              });
+            }
+            return [];
+          },
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        cornerRadius: 12,
+        callbacks: {
+          label: function(context: any) {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return `₹${context.parsed.toLocaleString()} (${percentage}%)`;
+          },
+        },
       },
     },
   };
 
+  // Calculate budget usage percentage correctly
+  const budgetUsagePercentage = data.totalBudget > 0 ? (data.totalExpenses / data.totalBudget) * 100 : 0;
+
   if (loading) {
     return (
-      <div className="loading-container">
-        <div>
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="dashboard-wrapper">
-      <div className="dashboard-container">
-        {/* Header */}
-        <div className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Financial Dashboard</h1>
-            <p className="dashboard-subtitle">Track your income, expenses, and savings with insights.</p>
+   
+  <div className="space-y-4 sm:space-y-6">
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Title */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal bg-gradient-to-r from-indigo-800 via-blue-700 to-gray-700 bg-clip-text text-transparent">
+  Financial Dashboard
+</h1>
+
+        <p className="mt-1 text-sm text-gray-600">
+          Track your income, expenses, and savings with insights.
+        </p>
+            
           </div>
-          <div className="header-actions">
-            <button onClick={handleRefresh} disabled={refreshing} className="refresh-button">
-              <RefreshCw className={`icon ${refreshing ? 'spinning' : ''}`} style={{width: '1rem', height: '1rem'}} />
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium"
+               >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-            <div className="period-filter">
-              <Filter className="icon" style={{width: '1rem', height: '1rem'}}/>
-              <select value={period} onChange={(e) => setPeriod(e.target.value)} className="period-select">
+            
+            <div className="flex items-center gap-2 bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+              <Filter className="w-4 h-4 text-gray-500 ml-2" />
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="border-0 bg-transparent px-2 py-1 text-sm focus:ring-0 focus:outline-none font-medium text-gray-700"
+              >
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>
                 <option value="year">This Year</option>
@@ -278,177 +396,236 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Period Summary Card */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-header-content">
-              <div>
-                <h3 className="card-title">
-                  <Calendar className="icon" style={{width: '1.25rem', height: '1.25rem'}}/>
-                  {getPeriodLabel()} Summary
-                </h3>
-                <p className="card-subtitle">{getPeriodDateRange()}</p>
-              </div>
-            </div>
-          </div>
-          <div className="card-grid">
-            {/* Income */}
-            <div className="stat-card stat-card--income">
-              <div className="stat-card-content">
-                <div>
-                  <p className="stat-card-title"><a href="/income">Total Income</a></p>
-                  <p className="stat-card-value"><a href="/income">₹{data.totalIncome.toLocaleString()}</a></p>
-                  <p className="stat-card-period">Current period</p>
-                </div>
-                <div className="stat-card-icon-wrapper">
-                  <TrendingUp className="icon" style={{width: '1.5rem', height: '1.5rem'}}/>
-                </div>
-              </div>
-            </div>
-            {/* Expenses */}
-            <div className="stat-card stat-card--expenses">
-              <div className="stat-card-content">
-                <div>
-                  <p className="stat-card-title"><a href="/expenses">Total Expenses</a></p>
-                  <p className="stat-card-value"><a href="/expenses">₹{data.totalExpenses.toLocaleString()}</a></p>
-                  <p className="stat-card-period">Current period</p>
-                </div>
-                <div className="stat-card-icon-wrapper">
-                  <TrendingDown className="icon" style={{width: '1.5rem', height: '1.5rem'}}/>
-                </div>
-              </div>
-            </div>
-            {/* Net Balance */}
-            <div className="stat-card stat-card--balance">
-              <div className="stat-card-content">
-                <div>
-                  <p className="stat-card-title">Net Balance</p>
-<p
-  className="stat-card-value"
-  style={{
-    fontSize: '2.25rem',
-    fontWeight: 700,
-    color: 'var(--white)',
-  }}
->
-  ₹{data.balance.toLocaleString()}
-</p>
+<div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+  {/* Header */}
+  <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-100">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-primary-500" />
+          {getPeriodLabel()} Summary
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">{getPeriodDateRange()}</p>
+      </div>
+      <Filter className="w-4 h-4 text-gray-500 ml-2" />
+    </div>
+  </div>
 
-                  <p className="stat-card-period">Overview</p>
-                </div>
-                <div className="stat-card-icon-wrapper">
-                  <Activity className="icon" style={{width: '1.5rem', height: '1.5rem'}}/>
-                </div>
-              </div>
-            </div>
-            {/* Budget */}
-            <div className="stat-card stat-card--budget">
-              <div className="stat-card-content">
-                <div>
-                  <p className="stat-card-title"><a href="/budget">Total Budget</a></p>
-                  <p className="stat-card-value"><a href="/budget">₹{data.totalBudget.toLocaleString()}</a></p>
-                  <p className="stat-card-period">Allocated</p>
-                </div>
-                <div className="stat-card-icon-wrapper">
-                  <Target className="icon" style={{width: '1.5rem', height: '1.5rem'}}/>
-                </div>
-              </div>
-            </div>
-          </div>
+  {/* Grid */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6">
+    {/* Income */}
+    <div className="flex flex-col justify-between bg-gradient-to-br from-emerald-500 to-green-600 p-6 rounded-2xl shadow-md text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-emerald-100 text-sm font-medium">
+            <a href="/income">Total Income</a>
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold">
+            <a href="/income">₹{data.totalIncome.toLocaleString()}</a>
+          </p>
+          <p className="text-emerald-200 text-xs mt-1">Current period</p>
         </div>
+        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+          <TrendingUp className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+
+    {/* Expenses */}
+    <div className="flex flex-col justify-between bg-gradient-to-br from-red-500 to-rose-600 p-6 rounded-2xl shadow-md text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-red-100 text-sm font-medium">
+            <a href="/expenses">Total Expenses</a>
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold">
+            <a href="/expenses">₹{data.totalExpenses.toLocaleString()}</a>
+          </p>
+          <p className="text-red-200 text-xs mt-1">Current period</p>
+        </div>
+        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+          <TrendingDown className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+
+    {/* Net Balance */}
+    <div className="flex flex-col justify-between bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-2xl shadow-md text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-blue-100 text-sm font-medium">Net Balance</p>
+          <p className="text-2xl sm:text-3xl font-bold">
+            ₹{data.balance.toLocaleString()}
+          </p>
+          <p className="text-blue-200 text-xs mt-1">Overview</p>
+        </div>
+        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+          <Activity className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+
+    {/* Budget */}
+    <div className="flex flex-col justify-between bg-gradient-to-br from-purple-500 to-violet-600 p-6 rounded-2xl shadow-md text-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-purple-100 text-sm font-medium">
+            <a href="/budget">Total Budget</a>
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold">
+            <a href="/budget">₹{data.totalBudget.toLocaleString()}</a>
+          </p>
+          <p className="text-purple-200 text-xs mt-1">Allocated</p>
+        </div>
+        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+          <Target className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  </div>
 
         {/* Charts Section */}
-        <div className="charts-grid">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Income vs Expenses Chart */}
-          <div className="card chart-card-large">
-            <div className="card-header">
-              <div className="chart-header-content">
+          <div className="xl:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h3 className="card-title">Income vs Expenses Analysis</h3>
-                  <p className="card-subtitle">Compare your income and expenses over time</p>
+                  <h3 className="text-lg font-bold text-gray-800">Income vs Expenses Analysis</h3>
+                  <p className="text-sm text-gray-600">Compare your income and expenses over time</p>
                 </div>
-                <div className="chart-view-toggle">
-                  <button onClick={() => setChartView('weekly')} className={`toggle-button ${chartView === 'weekly' ? 'active' : ''}`}>
-                    <BarChart3 className="icon" style={{width: '1rem', height: '1rem'}}/> Weekly
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setChartView('weekly')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      chartView === 'weekly'
+                        ? 'bg-primary-500 text-white shadow-md transform scale-105'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4 inline mr-1" />
+                    Weekly
                   </button>
-                  <button onClick={() => setChartView('monthly')} className={`toggle-button ${chartView === 'monthly' ? 'active' : ''}`}>
-                    <Calendar className="icon" style={{width: '1rem', height: '1rem'}}/> Monthly
+                  <button
+                    onClick={() => setChartView('monthly')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      chartView === 'monthly'
+                        ? 'bg-primary-500 text-white shadow-md transform scale-105'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 inline mr-1" />
+                    Monthly
                   </button>
                 </div>
               </div>
             </div>
-            <div className="chart-container">
-              {chartView === 'weekly' && weeklyData.length > 0 ? (
-                <Bar data={weeklyChartData} options={barChartOptions} />
-              ) : chartView === 'monthly' && data.monthlyData?.length > 0 ? (
-                <Bar data={monthlyChartData} options={barChartOptions} />
-              ) : (
-                <div className="empty-state">
-                  <div>
-                    <BarChart3 className="empty-state-icon" />
-                    <h4 className="empty-state-title">No Data Available</h4>
-                    <p className="empty-state-subtitle">{chartView === 'weekly' ? 'No weekly data to display' : 'No monthly data to display'}</p>
-                    <p className="empty-state-info">Start adding income and expenses to see analytics</p>
+            
+            <div className="p-6">
+              <div className="h-80">
+                {chartView === 'weekly' && weeklyData.length > 0 ? (
+                  <Bar data={weeklyChartData} options={barChartOptions} />
+                ) : chartView === 'monthly' && data.monthlyData && data.monthlyData.length > 0 ? (
+                  <Bar data={monthlyChartData} options={barChartOptions} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h4 className="text-lg font-medium text-gray-600 mb-2">No Data Available</h4>
+                      <p className="text-sm text-gray-500">
+                        {chartView === 'weekly' ? 'No weekly data to display' : 'No monthly data to display'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Start adding income and expenses to see analytics</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
           {/* Expense Categories Breakdown */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <PieChart className="icon" style={{width: '1.25rem', height: '1.25rem'}} /> Expense Categories
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-primary-500" />
+                Expense Categories
               </h3>
-              <p className="card-subtitle">Breakdown by category</p>
+              <p className="text-sm text-gray-600 mt-1">Breakdown by category</p>
             </div>
-            <div className="chart-container">
-              {data.categoryData?.length > 0 ? (
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              ) : (
-                <div className="empty-state">
-                  <div>
-                    <PieChart className="empty-state-icon" />
-                    <h4 className="empty-state-title">No Categories</h4>
-                    <p className="empty-state-subtitle">No expense categories to display</p>
-                    <p className="empty-state-info">Add expenses to see category breakdown</p>
+            
+            <div className="p-6">
+              <div className="h-80">
+                {data.categoryData && data.categoryData.length > 0 ? (
+                  <Doughnut data={doughnutData} options={doughnutOptions} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <PieChart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h4 className="text-lg font-medium text-gray-600 mb-2">No Categories</h4>
+                      <p className="text-sm text-gray-500">No expense categories to display</p>
+                      <p className="text-xs text-gray-400 mt-1">Add expenses to see category breakdown</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
 
+
         {/* Recent Transactions */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <Calendar className="icon" style={{width: '1.25rem', height: '1.25rem'}}/> Recent Transactions
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary-500" />
+              Recent Transactions
             </h3>
-            <p className="card-subtitle">Latest financial activities</p>
+            <p className="text-sm text-gray-600 mt-1">Latest financial activities</p>
           </div>
-          <div style={{padding: '1.5rem'}}>
-            {data.recentTransactions?.length > 0 ? (
-              <div className="transaction-list">
+          
+          <div className="p-6">
+            {data.recentTransactions && data.recentTransactions.length > 0 ? (
+              <div className="space-y-4">
                 {data.recentTransactions.slice(0, 5).map((transaction, index) => (
-                  <div key={index} className="transaction-item">
-                    <div className="transaction-item-main">
-                      <div className={`transaction-icon-wrapper ${transaction.type}`}>
-                        {transaction.type === 'income' ? <TrendingUp className="icon"/> : <TrendingDown className="icon"/>}
+                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border border-gray-200 hover:border-blue-200 hover:shadow-md">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
+                        transaction.type === 'income' 
+                          ? 'bg-gradient-to-br from-green-400 to-emerald-500' 
+                          : 'bg-gradient-to-br from-red-400 to-rose-500'
+                      }`}>
+                        {transaction.type === 'income' ? (
+                          <TrendingUp className="w-6 h-6 text-white" />
+                        ) : (
+                          <TrendingDown className="w-6 h-6 text-white" />
+                        )}
                       </div>
                       <div>
-                        <p className="transaction-description">{transaction.description}</p>
-                        <div className="transaction-details">
-                          <span className="transaction-category">{transaction.category}</span>
-                          <span className="transaction-date">{format(new Date(transaction.date), 'MMM dd, yyyy')}</span>
+                        <p className="font-semibold text-gray-800 text-base">{transaction.description}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded-full border">
+                            {transaction.category}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {format(new Date(transaction.date), 'MMM dd, yyyy')}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <div className="transaction-amount-wrapper">
-                      <p className={`transaction-amount ${transaction.type}`}>
+                    
+                    <div className="text-right">
+                      <p className={`font-bold text-xl ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
                         {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
                       </p>
-                      <p className={`transaction-type ${transaction.type}`}>
+                      <p className={`text-xs font-medium ${
+                        transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
+                      }`}>
                         {transaction.type === 'income' ? 'INCOME' : 'EXPENSE'}
                       </p>
                     </div>
@@ -456,22 +633,76 @@ const Dashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="empty-state-transactions">
-                <div className="empty-state-icon-wrapper">
-                  <Calendar className="empty-state-icon" />
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-10 h-10 text-gray-400" />
                 </div>
-                <h4 className="empty-state-title">No Transactions Yet</h4>
-                <p className="empty-state-subtitle">Start by adding your first income or expense</p>
-                <div className="empty-state-actions">
-                  <button onClick={() => window.location.href = '/income'} className="empty-state-button income">Add Income</button>
-                  <button onClick={() => window.location.href = '/expenses'} className="empty-state-button expense">Add Expense</button>
+                <h4 className="text-lg font-semibold text-gray-700 mb-2">No Transactions Yet</h4>
+                <p className="text-gray-500 mb-6">Start by adding your first income or expense</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => window.location.href = '/income'}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg font-medium"
+                  >
+                    Add Income
+                  </button>
+                  <button
+                    onClick={() => window.location.href = '/expenses'}
+                    className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-rose-700 transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg font-medium"
+                  >
+                    Add Expense
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Quick Stats Summary */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+            <h3 className="text-lg font-bold text-gray-800">Financial Summary</h3>
+            <p className="text-sm text-gray-600 mt-1">Key metrics for the selected period</p>
+          </div>
+          
+            <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl border border-blue-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-lg font-bold text-blue-700">
+                  {data.totalIncome > 0 && data.totalExpenses > 0 
+                    ? ((data.totalIncome / data.totalExpenses) * 100).toFixed(1) 
+                    : '0'}%
+                </p>
+                <p className="text-sm text-blue-600 font-medium">Income to Expense Ratio</p>
+              </div>
+              
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl border border-purple-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-lg font-bold text-purple-700">
+                  ₹{data.totalIncome > 0 ? (data.totalIncome / (data.recentTransactions.filter(t => t.type === 'income').length || 1)).toLocaleString() : '0'}
+                </p>
+                <p className="text-sm text-purple-600 font-medium">Avg Income per Entry</p>
+              </div>
+              
+              <div className="text-center p-4 bg-gradient-to-br from-rose-50 to-pink-100 rounded-xl border border-rose-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <TrendingDown className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-lg font-bold text-rose-700">
+                  ₹{data.totalExpenses > 0 ? (data.totalExpenses / (data.recentTransactions.filter(t => t.type === 'expense').length || 1)).toLocaleString() : '0'}
+                </p>
+                <p className="text-sm text-rose-600 font-medium">Avg Expense per Entry</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
   );
 };
 

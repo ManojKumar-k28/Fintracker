@@ -15,12 +15,18 @@ const Categories: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     type: 'expense' as 'income' | 'expense',
     color: '#3b82f6',
   });
+
+  // For separate pagination state
+  const [incomePage, setIncomePage] = useState(1);
+  const [expensePage, setExpensePage] = useState(1);
+
+  const itemsPerPage = 10;
 
   const colorOptions = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -32,12 +38,13 @@ const Categories: React.FC = () => {
   }, []);
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const response = await axios.get('/api/categories');
       setCategories(response.data);
     } catch (error) {
-      console.error('Error fetching categories:', error);
       toast.error('Failed to fetch categories');
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -45,26 +52,33 @@ const Categories: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       if (editingItem) {
         await axios.put(`/api/categories/${editingItem._id}`, formData);
-        toast.success('Category updated successfully');
+        toast.success('Category updated');
       } else {
         await axios.post('/api/categories', formData);
-        toast.success('Category created successfully');
+        toast.success('Category created');
       }
 
       setShowModal(false);
       setEditingItem(null);
-      setFormData({
-        name: '',
-        type: 'expense',
-        color: '#3b82f6',
-      });
+      setFormData({ name: '', type: 'expense', color: '#3b82f6' });
       fetchCategories();
     } catch (error) {
-      toast.error('Failed to save category');
+      toast.error('Error saving category');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this category?')) {
+      try {
+        await axios.delete(`/api/categories/${id}`);
+        toast.success('Category deleted');
+        fetchCategories();
+      } catch (error) {
+        toast.error('Error deleting category');
+      }
     }
   };
 
@@ -78,92 +92,82 @@ const Categories: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      try {
-        await axios.delete(`/api/categories/${id}`);
-        toast.success('Category deleted successfully');
-        fetchCategories();
-      } catch (error) {
-        toast.error('Failed to delete category');
-      }
-    }
-  };
+  // Split categories
+  const incomeCategories = categories.filter(c => c.type === 'income');
+  const expenseCategories = categories.filter(c => c.type === 'expense');
 
-  const incomeCategories = categories.filter(cat => cat.type === 'income');
-  const expenseCategories = categories.filter(cat => cat.type === 'expense');
+  // Paginated categories
+  const paginatedIncomeCategories = incomeCategories.slice(
+    (incomePage - 1) * itemsPerPage,
+    incomePage * itemsPerPage
+  );
+
+  const paginatedExpenseCategories = expenseCategories.slice(
+    (expensePage - 1) * itemsPerPage,
+    expensePage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setIncomePage(1);
+    setExpensePage(1);
+  }, [categories]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="flex justify-center py-20">
+        <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-   <div className="space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Category Management</h1>
-          <p className="text-gray-600">Organize your income and expense categories</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-gray-700 text-transparent bg-clip-text">
+            Category Management
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">Organize your income and expense categories wisely</p>
         </div>
-        
+
         <button
           onClick={() => {
-            setEditingItem(null);
-            setFormData({
-              name: '',
-              type: 'expense',
-              color: '#3b82f6',
-            });
             setShowModal(true);
+            setEditingItem(null);
+            setFormData({ name: '', type: 'expense', color: '#3b82f6' });
           }}
-          className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
+          className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mt-4 sm:mt-0"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Add Category
         </button>
       </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Income Categories */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-8 bg-success-50 rounded-lg flex items-center justify-center">
-                <Tags className="w-4 h-4 text-success-500" />
-              </div>
-              Income Categories
-            </h3>
+      {/* Category Grids */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Income */}
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="p-4 border-b flex items-center gap-2">
+            <div className="w-8 h-8 bg-success-100 text-success-600 flex justify-center items-center rounded">
+              <Tags className="w-4 h-4" />
+            </div>
+            <h2 className="font-semibold text-lg">Income Categories</h2>
           </div>
-          
-          <div className="p-6">
-            {incomeCategories.length > 0 ? (
+          <div className="p-4">
+            {paginatedIncomeCategories.length > 0 ? (
               <div className="space-y-3">
-                {incomeCategories.map((category) => (
-                  <div key={category._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: category.color }}
-                      ></div>
-                      <span className="font-medium text-gray-800">{category.name}</span>
+                {paginatedIncomeCategories.map((cat) => (
+                  <div key={cat._id} className="bg-gray-50 rounded-lg px-4 py-3 flex justify-between items-center">
+                    <div className="flex gap-3 items-center">
+                      <span className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span>{cat.name}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                      >
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(cat)} className="hover:text-blue-600 px-2">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(category._id)}
-                        className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-lg transition-colors"
-                      >
+                      <button onClick={() => handleDelete(cat._id)} className="hover:text-red-500 px-2">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -171,50 +175,52 @@ const Categories: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Tags className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No income categories yet</p>
-                <p className="text-sm text-gray-400 mt-1">Create your first income category</p>
+              <p className="text-sm text-gray-500 text-center">No income categories yet.</p>
+            )}
+
+            {/* Pagination */}
+            {incomeCategories.length > itemsPerPage && (
+              <div className="flex justify-center space-x-2 mt-4">
+                {Array.from({ length: Math.ceil(incomeCategories.length / itemsPerPage) }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIncomePage(i + 1)}
+                    className={`w-8 h-8 rounded-full text-sm ${
+                      i + 1 === incomePage
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-100 hover:bg-primary-100'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Expense Categories */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-8 bg-error-50 rounded-lg flex items-center justify-center">
-                <Tags className="w-4 h-4 text-error-500" />
-              </div>
-              Expense Categories
-            </h3>
+        {/* Expense */}
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="p-4 border-b flex items-center gap-2">
+            <div className="w-8 h-8 bg-red-100 text-red-600 flex justify-center items-center rounded">
+              <Tags className="w-4 h-4" />
+            </div>
+            <h2 className="font-semibold text-lg">Expense Categories</h2>
           </div>
-          
-          <div className="p-6">
-            {expenseCategories.length > 0 ? (
+          <div className="p-4">
+            {paginatedExpenseCategories.length > 0 ? (
               <div className="space-y-3">
-                {expenseCategories.map((category) => (
-                  <div key={category._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: category.color }}
-                      ></div>
-                      <span className="font-medium text-gray-800">{category.name}</span>
+                {paginatedExpenseCategories.map((cat) => (
+                  <div key={cat._id} className="bg-gray-50 rounded-lg px-4 py-3 flex justify-between items-center">
+                    <div className="flex gap-3 items-center">
+                      <span className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span>{cat.name}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                      >
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(cat)} className="hover:text-blue-600 px-2">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(category._id)}
-                        className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-lg transition-colors"
-                      >
+                      <button onClick={() => handleDelete(cat._id)} className="hover:text-red-500 px-2">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -222,10 +228,25 @@ const Categories: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Tags className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No expense categories yet</p>
-                <p className="text-sm text-gray-400 mt-1">Create your first expense category</p>
+              <p className="text-sm text-gray-500 text-center">No expense categories yet.</p>
+            )}
+
+            {/* Pagination */}
+            {expenseCategories.length > itemsPerPage && (
+              <div className="flex justify-center space-x-2 mt-4">
+                {Array.from({ length: Math.ceil(expenseCategories.length / itemsPerPage) }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setExpensePage(i + 1)}
+                    className={`w-8 h-8 rounded-full text-sm ${
+                      i + 1 === expensePage
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-100 hover:bg-primary-100'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -234,66 +255,49 @@ const Categories: React.FC = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">
-              {editingItem ? 'Edit Category' : 'Add Category'}
-            </h3>
-            
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">{editingItem ? 'Edit Category' : 'Add Category'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Name
-                </label>
+                <label className="text-sm font-medium">Category Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., Food & Dining"
                   required
+                  className="mt-1 w-full border px-3 py-2 rounded-lg focus:ring-primary-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="income"
-                      checked={formData.type === 'income'}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
-                      className="mr-2"
-                    />
-                    Income
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      value="expense"
-                      checked={formData.type === 'expense'}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
-                      className="mr-2"
-                    />
-                    Expense
-                  </label>
+                <label className="text-sm font-medium">Type</label>
+                <div className="flex gap-4 mt-1">
+                  {['income', 'expense'].map((type) => (
+                    <label key={type} className="flex items-center gap-1 text-sm">
+                      <input
+                        type="radio"
+                        value={type}
+                        checked={formData.type === type}
+                        onChange={(e) =>
+                          setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })
+                        }
+                      />
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </label>
+                  ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Color
-                </label>
+                <label className="text-sm font-medium mb-1 block">Select Color</label>
                 <div className="flex flex-wrap gap-2">
                   {colorOptions.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setFormData({ ...formData, color })}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      className={`w-8 h-8 rounded-full border-2 ${
                         formData.color === color ? 'border-gray-800 scale-110' : 'border-gray-300'
                       }`}
                       style={{ backgroundColor: color }}
@@ -309,15 +313,15 @@ const Categories: React.FC = () => {
                     setShowModal(false);
                     setEditingItem(null);
                   }}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                  className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                 >
-                  {editingItem ? 'Update' : 'Add'} Category
+                  {editingItem ? 'Update' : 'Add'}
                 </button>
               </div>
             </form>

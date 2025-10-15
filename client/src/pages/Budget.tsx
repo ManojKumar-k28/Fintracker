@@ -129,15 +129,7 @@ const Budget: React.FC = () => {
     }
   };
 
-  const refreshBudgets = async () => {
-    try {
-      await axios.post('/api/budget/refresh');
-      toast.success('Budget amounts refreshed');
-      fetchBudgets();
-    } catch (error) {
-      toast.error('Failed to refresh budgets');
-    }
-  };
+
 
   const getBudgetStatus = (budget: BudgetItem) => {
     const percentage = budget.budgetAmount > 0 ? (budget.spentAmount / budget.budgetAmount) * 100 : 0;

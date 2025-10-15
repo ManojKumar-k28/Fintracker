@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Tags, ChartBar as BarChart3, LogOut, Shield, Menu, X, Wallet } from 'lucide-react';
+import { LayoutDashboard, Users, Tags, BarChart3 as BarChart3, LogOut, Shield, Menu, X, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AdminSidebar: React.FC = () => {

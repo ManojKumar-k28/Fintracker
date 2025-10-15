@@ -150,14 +150,6 @@ const Login: React.FC = () => {
         </form>
 
         {/* Footer and Modal (No changes needed here) */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setShowForgotPassword(true)}
-            className="text-primary-500 hover:text-primary-600 text-sm font-medium transition-colors"
-          >
-            Forgot your password?
-          </button>
-        </div>
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Don't have an account?{' '}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChartBar as BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Download, RefreshCw, Users, Target } from 'lucide-react';
+import { BarChart3 as BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Download, RefreshCw, Users, Target } from 'lucide-react';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,

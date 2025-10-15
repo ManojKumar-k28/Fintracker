@@ -12,6 +12,16 @@
     "start": "npm run dev"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "axios": "^1.12.2",
+    "chart.js": "^4.5.0",
+    "concurrently": "^8.2.2",
+    "date-fns": "^4.1.0",
+    "icons": "^1.0.0",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
+    "lucide": "^0.545.0",
+    "lucide-react": "^0.545.0",
+    "react-hot-toast": "^2.6.0",
+    "xlsx": "^0.18.5"
   }
 }
