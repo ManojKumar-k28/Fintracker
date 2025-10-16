@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/fintracker/', // 👈 This sets the base path
   plugins: [react()],
   server: {
     port: 3000,
@@ -13,13 +14,13 @@ export default defineConfig({
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-           
+            // Handle proxy error
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
-           
+            // Modify proxy request if needed
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
-          
+            // Inspect proxy response if needed
           });
         },
       },
@@ -31,5 +32,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+  },
+  define: {
+    __APP_NAME__: JSON.stringify('FinTracker'),
   },
 });
