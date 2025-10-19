@@ -1,3 +1,5 @@
+// server/models/User.js
+
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -37,31 +39,24 @@ const userSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// Hash password before saving
+// ✅ Hash password when changed/new
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-// Compare password method
+// ✅ Compare password for login
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Remove password from JSON output
+// ✅ Clean output
 userSchema.methods.toJSON = function() {
-  const userObject = this.toObject();
-  delete userObject.password;
-  delete userObject.resetPasswordToken;
-  delete userObject.resetPasswordExpires;
-  return userObject;
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
 };
 
 export default mongoose.model('User', userSchema);

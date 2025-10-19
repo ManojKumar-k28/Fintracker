@@ -3,7 +3,16 @@ import { Mic, MicOff, Volume2, Minimize2, MessageCircle, HelpCircle, ChevronDown
 import { useVoice } from '../contexts/VoiceContext';
 
 const VoiceAssistant: React.FC = () => {
-  const { isListening, startListening, stopListening, transcript, status } = useVoice();
+  const {
+    isListening,
+    startListening,
+    stopListening,
+    transcript,
+    status,
+    voiceGender,
+    setVoiceGender,
+  } = useVoice();
+
   const [isMinimized, setIsMinimized] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -13,16 +22,13 @@ const VoiceAssistant: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      
       setLastScrollY(currentScrollY);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
@@ -30,9 +36,7 @@ const VoiceAssistant: React.FC = () => {
   useEffect(() => {
     if (transcript) {
       setShowTranscript(true);
-      const timer = setTimeout(() => {
-        setShowTranscript(false);
-      }, 4000);
+      const timer = setTimeout(() => setShowTranscript(false), 2200);
       return () => clearTimeout(timer);
     }
   }, [transcript]);
@@ -61,7 +65,6 @@ const VoiceAssistant: React.FC = () => {
         fixed bottom-4 right-4 z-50 transition-all duration-300 ease-in-out
         ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}
       `}>
-        {/* Transcript Bubble for Minimized State */}
         {showTranscript && transcript && (
           <div className="absolute bottom-full right-0 mb-2 max-w-xs animate-fade-in">
             <div className="bg-gray-900 text-white p-2 rounded-lg shadow-lg relative text-xs">
@@ -71,7 +74,7 @@ const VoiceAssistant: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         <button
           onClick={() => setIsMinimized(false)}
           className={`
@@ -82,11 +85,7 @@ const VoiceAssistant: React.FC = () => {
           `}
           aria-label="Open voice assistant"
         >
-          {isListening ? (
-            <MicOff className="w-4 h-4 text-white" />
-          ) : (
-            <Mic className="w-4 h-4 text-white" />
-          )}
+          {isListening ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
         </button>
       </div>
     );
@@ -98,7 +97,6 @@ const VoiceAssistant: React.FC = () => {
       transition-all duration-300 ease-in-out
       ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}
     `}>
-      {/* Transcript Bubble */}
       {showTranscript && transcript && (
         <div className="absolute bottom-full right-0 mb-3 max-w-xs animate-fade-in">
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-3 rounded-xl shadow-xl relative border border-gray-700">
@@ -114,9 +112,7 @@ const VoiceAssistant: React.FC = () => {
         </div>
       )}
 
-      {/* Main Voice Assistant Panel */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden w-72">
-        {/* Compact Header */}
         <div className={`bg-gradient-to-r ${getStatusColor()} p-3`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -128,7 +124,32 @@ const VoiceAssistant: React.FC = () => {
                 <p className="text-white text-opacity-80 text-xs">{getStatusText()}</p>
               </div>
             </div>
+
             <div className="flex items-center gap-1">
+              {/* Gender toggle */}
+              <div className="hidden sm:flex items-center bg-white bg-opacity-20 rounded-lg p-0.5">
+                <button
+                  onClick={() => setVoiceGender('female')}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition ${
+                    voiceGender === 'female' ? 'bg-white text-pink-600' : 'text-white hover:bg-white hover:bg-opacity-20'
+                  }`}
+                  aria-label="Female voice"
+                  title="Female voice"
+                >
+                  F
+                </button>
+                <button
+                  onClick={() => setVoiceGender('male')}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition ${
+                    voiceGender === 'male' ? 'bg-white text-blue-600' : 'text-white hover:bg-white hover:bg-opacity-20'
+                  }`}
+                  aria-label="Male voice"
+                  title="Male voice"
+                >
+                  M
+                </button>
+              </div>
+
               <button
                 onClick={() => setShowHelp(!showHelp)}
                 className="w-6 h-6 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all duration-200"
@@ -147,23 +168,20 @@ const VoiceAssistant: React.FC = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-3">
-          {/* Microphone Button */}
+          {/* Mic Button (always interactive for instant feel) */}
           <div className="text-center mb-3">
             <button
               onClick={isListening ? stopListening : startListening}
-              disabled={status === 'processing' || status === 'responding'}
               className={`
                 w-12 h-12 rounded-full 
-                flex items-center justify-center transition-all duration-300 
+                flex items-center justify-center transition-all duration-200 
                 focus:outline-none focus:ring-4 focus:ring-opacity-50 shadow-lg
                 relative overflow-hidden mx-auto
-                disabled:opacity-50 disabled:cursor-not-allowed
                 ${
-                isListening
-                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-red-300 voice-listening'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-300 hover:scale-105'
+                  isListening
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-red-300 voice-listening'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-300 hover:scale-105'
                 }
               `}
               aria-label={isListening ? 'Stop listening' : 'Start voice assistant'}
@@ -172,15 +190,10 @@ const VoiceAssistant: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 rounded-full animate-ping opacity-75"></div>
               )}
               <div className="relative z-10">
-                {isListening ? (
-                  <MicOff className="w-4 h-4 text-white" />
-                ) : (
-                  <Mic className="w-4 h-4 text-white" />
-                )}
+                {isListening ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
               </div>
             </button>
-            
-            {/* Status Indicator */}
+
             <div className="mt-2">
               <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
                 isListening 
@@ -201,7 +214,7 @@ const VoiceAssistant: React.FC = () => {
             </div>
           </div>
 
-          {/* Commands Help */}
+          {/* Help */}
           <div className="mb-3">
             <button
               onClick={() => setShowHelp(!showHelp)}
@@ -235,7 +248,7 @@ const VoiceAssistant: React.FC = () => {
             )}
           </div>
 
-          {/* Recent Transcript Display */}
+          {/* Recent Transcript */}
           {transcript && (
             <div className="p-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-2">

@@ -659,49 +659,8 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats Summary */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
-            <h3 className="text-lg font-bold text-gray-800">Financial Summary</h3>
-            <p className="text-sm text-gray-600 mt-1">Key metrics for the selected period</p>
           </div>
-          
-            <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl border border-blue-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Activity className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-lg font-bold text-blue-700">
-                  {data.totalIncome > 0 && data.totalExpenses > 0 
-                    ? ((data.totalIncome / data.totalExpenses) * 100).toFixed(1) 
-                    : '0'}%
-                </p>
-                <p className="text-sm text-blue-600 font-medium">Income to Expense Ratio</p>
-              </div>
-              
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl border border-purple-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-lg font-bold text-purple-700">
-                  ₹{data.totalIncome > 0 ? (data.totalIncome / (data.recentTransactions.filter(t => t.type === 'income').length || 1)).toLocaleString() : '0'}
-                </p>
-                <p className="text-sm text-purple-600 font-medium">Avg Income per Entry</p>
-              </div>
-              
-              <div className="text-center p-4 bg-gradient-to-br from-rose-50 to-pink-100 rounded-xl border border-rose-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <TrendingDown className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-lg font-bold text-rose-700">
-                  ₹{data.totalExpenses > 0 ? (data.totalExpenses / (data.recentTransactions.filter(t => t.type === 'expense').length || 1)).toLocaleString() : '0'}
-                </p>
-                <p className="text-sm text-rose-600 font-medium">Avg Expense per Entry</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
   );
 };
