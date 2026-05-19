@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -418,10 +419,10 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-emerald-100 text-sm font-medium">
-            <a href="/income">Total Income</a>
+            <Link to="/income">Total Income</Link>
           </p>
           <p className="text-2xl sm:text-3xl font-bold">
-            <a href="/income">₹{data.totalIncome.toLocaleString()}</a>
+            <Link to="/income">₹{data.totalIncome.toLocaleString()}</Link>
           </p>
           <p className="text-emerald-200 text-xs mt-1">Current period</p>
         </div>
@@ -436,10 +437,10 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-red-100 text-sm font-medium">
-            <a href="/expenses">Total Expenses</a>
+            <Link to="/expenses">Total Expenses</Link>
           </p>
           <p className="text-2xl sm:text-3xl font-bold">
-            <a href="/expenses">₹{data.totalExpenses.toLocaleString()}</a>
+            <Link to="/expenses">₹{data.totalExpenses.toLocaleString()}</Link>
           </p>
           <p className="text-red-200 text-xs mt-1">Current period</p>
         </div>
@@ -470,10 +471,10 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-purple-100 text-sm font-medium">
-            <a href="/budget">Total Budget</a>
+            <Link to="/budget">Total Budget</Link>
           </p>
           <p className="text-2xl sm:text-3xl font-bold">
-            <a href="/budget">₹{data.totalBudget.toLocaleString()}</a>
+            <Link to="/budget">₹{data.totalBudget.toLocaleString()}</Link>
           </p>
           <p className="text-purple-200 text-xs mt-1">Allocated</p>
         </div>

@@ -9,7 +9,8 @@
     "server": "cd server && npm run dev",
     "build": "cd client && npm run build",
     "install-deps": "npm install && cd client && npm install && cd ../server && npm install",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "deploy": "npx vercel --prod"
   },
   "dependencies": {
     "axios": "^1.12.2",
@@ -17,11 +18,25 @@
     "concurrently": "^8.2.2",
     "date-fns": "^4.1.0",
     "icons": "^1.0.0",
-    "jspdf": "^3.0.3",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.2",
     "lucide": "^0.545.0",
     "lucide-react": "^0.545.0",
     "react-hot-toast": "^2.6.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3"
+  },
+  "devDependencies": {
+    "baseline-browser-mapping": "^2.10.31"
   }
 }

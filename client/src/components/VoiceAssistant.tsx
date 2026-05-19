@@ -243,6 +243,10 @@ const VoiceAssistant: React.FC = () => {
                     <div className="w-1 h-1 bg-purple-500 rounded-full"></div>
                     <span className="text-gray-700">"Show reports"</span>
                   </div>
+                  <div className="flex items-center gap-2 p-1.5 bg-white rounded-md border border-yellow-100">
+                    <div className="w-1 h-1 bg-yellow-500 rounded-full"></div>
+                    <span className="text-gray-700">"Give me suggestions to save money"</span>
+                  </div>
                 </div>
               </div>
             )}

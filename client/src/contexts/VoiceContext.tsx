@@ -401,6 +401,55 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const handleSuggestionsCommand = async () => {
+    let toastId: string | undefined;
+    try {
+      setStatus('processing');
+      toastId = toast.loading('Analyzing your financial history...');
+      
+      const res = await axios.get('/api/dashboard');
+      const data = res.data;
+      
+      const { totalIncome, totalExpenses, totalBudget, balance, categoryData } = data;
+      
+      let suggestion = '';
+      if (totalExpenses > totalIncome) {
+        suggestion = `Your expenses of ₹${totalExpenses} exceed your income of ₹${totalIncome}. `;
+      } else {
+        suggestion = `You have saved ₹${balance} this month. `;
+      }
+      
+      if (totalBudget > 0 && totalExpenses > totalBudget) {
+        suggestion += `You are over your monthly budget by ₹${totalExpenses - totalBudget}. `;
+      } else if (totalBudget > 0) {
+        suggestion += `You are within your budget, with ₹${totalBudget - totalExpenses} remaining. `;
+      }
+      
+      if (categoryData && categoryData.length > 0) {
+        suggestion += `To save more money, consider reducing your spending on ${categoryData[0].name}, which is your highest expense at ₹${categoryData[0].amount}.`;
+      } else {
+        suggestion += `Try setting a budget to track your expenses and save money.`;
+      }
+      
+      toast.success(
+        <div>
+          <h4 className="font-bold mb-1">Financial Suggestions</h4>
+          <p className="text-sm">{suggestion}</p>
+        </div>, 
+        { id: toastId, duration: 8000 }
+      );
+      
+      speakWithOptions(suggestion, { interrupt: true });
+    } catch (error) {
+      if (toastId) toast.error('Failed to get suggestions', { id: toastId });
+      else toast.error('Failed to get suggestions');
+      speakWithOptions('Sorry, I could not fetch your financial suggestions at the moment.', { interrupt: true });
+      console.error('Suggestions error:', error);
+    } finally {
+      setStatus('ready');
+    }
+  };
+
   const handleVoiceCommand = async (command: string) => {
     // NAVIGATION (instant, with quick ack)
     if (command.includes('go to dashboard') || command.includes('open dashboard') || command.includes('show dashboard') || command.includes('home') || command.includes('go home')) {
@@ -455,9 +504,15 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
+    // SUGGESTIONS
+    if (command.includes('how to save') || command.includes('suggestion') || command.includes('save money') || command.includes('advice')) {
+      await handleSuggestionsCommand();
+      return;
+    }
+
     // HELP
     if (command.includes('help') || command.includes('what can you do')) {
-      speakWithOptions('Try: "Go to dashboard", "Add income of 500", or "Add expense of 200 for food".', { interrupt: true });
+      speakWithOptions('Try: "Go to dashboard", "Add income of 500", "Add expense of 200", or "Give me suggestions to save money".', { interrupt: true });
       toast.success('Voice commands available');
       return;
     }

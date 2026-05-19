@@ -31,7 +31,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
   },
   define: {
     __APP_NAME__: JSON.stringify('FinTracker'),

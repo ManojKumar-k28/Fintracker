@@ -27,11 +27,8 @@ const CategoryManagement: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  
-  const [filters, setFilters] = useState({
-    search: '',
-    type: '',
-  });
+
+  const [filters, setFilters] = useState({ search: '', type: '' });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -45,15 +42,22 @@ const CategoryManagement: React.FC = () => {
     '#14b8a6', '#f472b6', '#a855f7', '#22c55e', '#fb7185'
   ];
 
+  const ITEMS_PER_PAGE = 10;
+  const [incomePage, setIncomePage] = useState(1);
+  const [expensePage, setExpensePage] = useState(1);
+
   useEffect(() => {
     fetchCategories();
   }, [filters]);
 
+  useEffect(() => {
+    setIncomePage(1);
+    setExpensePage(1);
+  }, [categories]);
+
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      console.log('🏷️ Fetching admin categories with filters:', filters);
-      
       const token = localStorage.getItem('adminToken');
       if (!token) {
         toast.error('Admin token not found. Please login again.');
@@ -65,14 +69,11 @@ const CategoryManagement: React.FC = () => {
       if (filters.type) params.append('type', filters.type);
 
       const response = await axios.get(`/api/admin/categories?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log('✅ Categories fetched successfully:', response.data);
       setCategories(response.data.data.categories);
     } catch (error: any) {
-      console.error('❌ Fetch categories error:', error);
-      
       if (error.response?.status === 401) {
         toast.error('Admin session expired. Please login again.');
         localStorage.removeItem('adminToken');
@@ -83,23 +84,20 @@ const CategoryManagement: React.FC = () => {
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchCategories();
-    setRefreshing(false);
     toast.success('Categories refreshed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
-      console.log('💾 Saving category:', formData);
       const token = localStorage.getItem('adminToken');
-      
       if (editingCategory) {
         await axios.patch(`/api/admin/categories/${editingCategory._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
@@ -114,14 +112,9 @@ const CategoryManagement: React.FC = () => {
 
       setShowModal(false);
       setEditingCategory(null);
-      setFormData({
-        name: '',
-        type: 'expense',
-        color: '#3b82f6',
-      });
+      setFormData({ name: '', type: 'expense', color: '#3b82f6' });
       fetchCategories();
     } catch (error: any) {
-      console.error('❌ Save category error:', error);
       toast.error(error.response?.data?.message || 'Failed to save category');
     }
   };
@@ -139,31 +132,59 @@ const CategoryManagement: React.FC = () => {
   const handleDelete = async (categoryId: string, categoryName: string) => {
     if (window.confirm(`Are you sure you want to delete category "${categoryName}"?`)) {
       try {
-        console.log(`🗑️ Deleting category ${categoryId}`);
         const token = localStorage.getItem('adminToken');
-        
         await axios.delete(`/api/admin/categories/${categoryId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
         toast.success('Category deleted successfully');
         fetchCategories();
       } catch (error: any) {
-        console.error('❌ Delete category error:', error);
         toast.error(error.response?.data?.message || 'Failed to delete category');
       }
     }
   };
 
-  const incomeCategories = categories.filter(cat => cat.type === 'income');
-  const expenseCategories = categories.filter(cat => cat.type === 'expense');
+  // Full list
+  const incomeCategoriesAll = categories.filter(cat => cat.type === 'income');
+  const expenseCategoriesAll = categories.filter(cat => cat.type === 'expense');
 
-  if (loading && categories.length === 0) {
+  // Paginated list
+  const incomeCategories = incomeCategoriesAll.slice((incomePage - 1) * ITEMS_PER_PAGE, incomePage * ITEMS_PER_PAGE);
+  const expenseCategories = expenseCategoriesAll.slice((expensePage - 1) * ITEMS_PER_PAGE, expensePage * ITEMS_PER_PAGE);
+
+  const renderPagination = (
+    totalItems: number,
+    currentPage: number,
+    onPageChange: (page: number) => void
+  ) => {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="flex justify-center items-center gap-2 mt-4 flex-wrap">
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`w-8 h-8 rounded-full text-sm ${
+              currentPage === page
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-800 hover:bg-purple-100'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading categories...</p>
+          <div className="animate-spin h-12 w-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-gray-600 font-medium text-lg">Loading categories...</p>
         </div>
       </div>
     );
@@ -173,19 +194,18 @@ const CategoryManagement: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="space-y-6 p-4 sm:p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-800 to-blue-800 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-800 to-blue-800 bg-clip-text text-transparent">
               Category Management
             </h1>
-            <p className="text-gray-600 mt-1">Manage default system categories</p>
+            <p className="text-gray-600 mt-1">Manage your categories with ease</p>
           </div>
-          
           <div className="flex gap-3">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-all duration-200 disabled:opacity-50 transform hover:-translate-y-0.5 hover:shadow-md font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-600 rounded-lg hover:bg-purple-50 transition disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
@@ -193,14 +213,10 @@ const CategoryManagement: React.FC = () => {
             <button
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({
-                  name: '',
-                  type: 'expense',
-                  color: '#3b82f6',
-                });
+                setFormData({ name: '', type: 'expense', color: '#3b82f6' });
                 setShowModal(true);
               }}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg font-medium"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition"
             >
               <Plus className="w-4 h-4" />
               Add Category
@@ -209,25 +225,21 @@ const CategoryManagement: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white border rounded-xl p-6 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
-                type="text"
-                placeholder="Search categories..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Search categories..."
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-
-            {/* Type Filter */}
             <select
               value={filters.type}
               onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
             >
               <option value="">All Types</option>
               <option value="income">Income</option>
@@ -236,120 +248,94 @@ const CategoryManagement: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid */}
+        {/* Category Lists */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Income Categories */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-100">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                </div>
-                Income Categories ({incomeCategories.length})
+          {/* Income */}
+          <div className="bg-white rounded-xl border shadow-sm">
+            <div className="p-6 bg-green-50 border-b flex items-center gap-2">
+              <TrendingUp className="text-green-600 w-5 h-5" />
+              <h3 className="text-lg font-semibold text-green-800">
+                Income Categories ({incomeCategoriesAll.length})
               </h3>
             </div>
-            
-            <div className="p-6">
+            <div className="p-6 space-y-3">
               {incomeCategories.length > 0 ? (
-                <div className="space-y-3">
-                  {incomeCategories.map((category) => (
-                    <div key={category._id} className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 hover:from-green-100 hover:to-emerald-100 transition-all duration-200">
+                <>
+                  {incomeCategories.map((cat) => (
+                    <div
+                      key={cat._id}
+                      className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200"
+                    >
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="w-6 h-6 rounded-full shadow-sm" 
-                          style={{ backgroundColor: category.color }}
-                        ></div>
+                        <span className="w-5 h-5 rounded-full" style={{ backgroundColor: cat.color }} />
                         <div>
-                          <span className="font-medium text-gray-800">{category.name}</span>
-                          {category.usage && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {category.usage.totalTransactions} transactions
-                            </div>
+                          <p className="text-gray-800 font-medium">{cat.name}</p>
+                          {cat.usage && (
+                            <p className="text-xs text-gray-500">
+                              {cat.usage.totalTransactions} transactions
+                            </p>
                           )}
                         </div>
                       </div>
-                      
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(category)}
-                          className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleEdit(cat)} className="p-2 hover:bg-blue-50 rounded text-blue-500">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(category._id, category.name)}
-                          className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleDelete(cat._id, cat.name)} className="p-2 hover:bg-red-50 rounded text-red-500">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   ))}
-                </div>
+                  {renderPagination(incomeCategoriesAll.length, incomePage, setIncomePage)}
+                </>
               ) : (
-                <div className="text-center py-8">
-                  <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No income categories found</p>
-                  <p className="text-sm text-gray-400 mt-1">Create your first income category</p>
-                </div>
+                <p className="text-center text-sm text-gray-500">No income categories found.</p>
               )}
             </div>
           </div>
 
-          {/* Expense Categories */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-rose-100">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                  <TrendingDown className="w-4 h-4 text-white" />
-                </div>
-                Expense Categories ({expenseCategories.length})
+          {/* Expense */}
+          <div className="bg-white rounded-xl border shadow-sm">
+            <div className="p-6 bg-red-50 border-b flex items-center gap-2">
+              <TrendingDown className="text-red-600 w-5 h-5" />
+              <h3 className="text-lg font-semibold text-red-800">
+                Expense Categories ({expenseCategoriesAll.length})
               </h3>
             </div>
-            
-            <div className="p-6">
+            <div className="p-6 space-y-3">
               {expenseCategories.length > 0 ? (
-                <div className="space-y-3">
-                  {expenseCategories.map((category) => (
-                    <div key={category._id} className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 hover:from-red-100 hover:to-rose-100 transition-all duration-200">
+                <>
+                  {expenseCategories.map((cat) => (
+                    <div
+                      key={cat._id}
+                      className="flex justify-between items-center p-4 bg-red-50 rounded-lg border border-red-200"
+                    >
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="w-6 h-6 rounded-full shadow-sm" 
-                          style={{ backgroundColor: category.color }}
-                        ></div>
+                        <span className="w-5 h-5 rounded-full" style={{ backgroundColor: cat.color }} />
                         <div>
-                          <span className="font-medium text-gray-800">{category.name}</span>
-                          {category.usage && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {category.usage.totalTransactions} transactions
-                            </div>
+                          <p className="text-gray-800 font-medium">{cat.name}</p>
+                          {cat.usage && (
+                            <p className="text-xs text-gray-500">
+                              {cat.usage.totalTransactions} transactions
+                            </p>
                           )}
                         </div>
                       </div>
-                      
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(category)}
-                          className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleEdit(cat)} className="p-2 hover:bg-blue-50 rounded text-blue-500">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(category._id, category.name)}
-                          className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => handleDelete(cat._id, cat.name)} className="p-2 hover:bg-red-50 rounded text-red-500">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   ))}
-                </div>
+                  {renderPagination(expenseCategoriesAll.length, expensePage, setExpensePage)}
+                </>
               ) : (
-                <div className="text-center py-8">
-                  <TrendingDown className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No expense categories found</p>
-                  <p className="text-sm text-gray-400 mt-1">Create your first expense category</p>
-                </div>
+                <p className="text-center text-sm text-gray-500">No expense categories found.</p>
               )}
             </div>
           </div>
@@ -362,87 +348,66 @@ const CategoryManagement: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-6">
                 {editingCategory ? 'Edit Category' : 'Add Category'}
               </h3>
-              
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category Name *
-                  </label>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">Name</label>
                   <input
-                    type="text"
+                    required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="e.g., Food & Dining"
-                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type *
-                  </label>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">Type</label>
                   <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="income"
-                        checked={formData.type === 'income'}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
-                        className="mr-2 text-purple-500"
-                      />
-                      <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                      Income
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        value="expense"
-                        checked={formData.type === 'expense'}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })}
-                        className="mr-2 text-purple-500"
-                      />
-                      <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-                      Expense
-                    </label>
+                    {['income', 'expense'].map((type) => (
+                      <label key={type} className="flex items-center text-sm gap-2">
+                        <input
+                          type="radio"
+                          value={type}
+                          checked={formData.type === type}
+                          onChange={(e) =>
+                            setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })
+                          }
+                        />
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </label>
+                    ))}
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Color
-                  </label>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">Color</label>
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map((color) => (
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setFormData({ ...formData, color })}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        className={`w-6 h-6 rounded-full border-2 ${
                           formData.color === color ? 'border-gray-800 scale-110' : 'border-gray-300'
                         }`}
                         style={{ backgroundColor: color }}
+                        onClick={() => setFormData({ ...formData, color })}
                       />
                     ))}
                   </div>
                 </div>
-
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-2 pt-4">
                   <button
                     type="button"
                     onClick={() => {
                       setShowModal(false);
                       setEditingCategory(null);
                     }}
-                    className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors"
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg"
                   >
-                    {editingCategory ? 'Update' : 'Create'} Category
+                    {editingCategory ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>

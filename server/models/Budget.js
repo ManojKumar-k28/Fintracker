@@ -21,25 +21,58 @@ const budgetSchema = new mongoose.Schema({
     default: 0,
     min: [0, 'Spent amount cannot be negative'],
   },
+  periodType: {
+    type: String,
+    required: true,
+    enum: ['Monthly', 'Annual'],
+    default: 'Monthly',
+  },
   month: {
     type: String,
-    required: [true, 'Month is required'],
+    // Month is now optional, only required if periodType is 'Monthly'
     enum: [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December', null
     ],
   },
   year: {
     type: Number,
     required: [true, 'Year is required'],
     min: [2020, 'Year must be 2020 or later'],
-    max: [2030, 'Year must be 2030 or earlier'],
   },
 }, {
   timestamps: true,
 });
 
-// Compound index to ensure unique budget per category per month per year per user
-budgetSchema.index({ userId: 1, category: 1, month: 1, year: 1 }, { unique: true });
+// Custom validator to ensure month is present for Monthly budgets
+budgetSchema.pre('validate', function(next) {
+  if (this.periodType === 'Monthly' && !this.month) {
+    this.invalidate('month', 'Month is required for a monthly budget.');
+  }
+  if (this.periodType === 'Annual') {
+    this.month = null; // Ensure month is null for annual budgets
+  }
+  next();
+});
+
+
+// Partial index for unique MONTHLY budgets per user/category
+budgetSchema.index(
+  { userId: 1, category: 1, month: 1, year: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { periodType: 'Monthly' } 
+  }
+);
+
+// Partial index for unique ANNUAL budgets per user/category
+budgetSchema.index(
+  { userId: 1, category: 1, year: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { periodType: 'Annual' } 
+  }
+);
+
 
 export default mongoose.model('Budget', budgetSchema);
