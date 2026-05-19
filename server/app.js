@@ -22,6 +22,9 @@ dotenv.config();
 
 const app = express();
 
+// Trust Vercel's reverse proxy for secure cookie delivery
+app.set('trust proxy', 1);
+
 // --- ALL YOUR MIDDLEWARE AND ROUTE CONFIGURATION GOES HERE ---
 
 // Security middleware
@@ -59,15 +62,16 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   rolling: true,
+  proxy: true, // Tell express-session to trust the reverse proxy
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/fintracker',
     dbName: process.env.DB_NAME || 'fintracker',
   }),
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production', // Secure cookies (HTTPS) in production
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   },
 }));
 

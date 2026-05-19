@@ -31,6 +31,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 1500,
   },
   define: {
     __APP_NAME__: JSON.stringify('FinTracker'),
