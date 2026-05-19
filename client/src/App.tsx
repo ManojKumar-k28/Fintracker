@@ -36,7 +36,7 @@ import SystemReports from './pages/admin/SystemReports';
 
 function App() {
   return (
-    <Router basename="/fintracker">
+    <Router>
       <AuthProvider>
         <AdminProvider>
           <VoiceProvider>
