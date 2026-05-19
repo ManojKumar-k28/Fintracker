@@ -1,43 +1,34 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "client/dist",
+  "redirects": [
     {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+      "source": "/",
+      "destination": "/fintracker/dashboard",
+      "permanent": false
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/$",
-      "status": 302,
-      "headers": { "Location": "/fintracker/dashboard" }
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/fintracker/assets/:path*",
+      "destination": "/assets/:path*"
     },
     {
-      "src": "/fintracker/assets/(.*)",
-      "dest": "/assets/$1"
+      "source": "/fintracker/:path*",
+      "destination": "/index.html"
     },
     {
-      "src": "/fintracker/(.*)",
-      "dest": "/index.html"
+      "source": "/fintracker",
+      "destination": "/index.html"
     },
     {
-      "src": "/fintracker",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
